@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mealmarketapp/model/restaurant.dart';
+import 'package:mealmarketapp/data/model/restaurants_list_model.dart';
 import '../../theme/theme.dart';
 
 class ListRestaurantCard extends StatelessWidget {
-  final Restaurant restaurant;
+  final RestaurantListModel restaurant;
 
   const ListRestaurantCard(
     this.restaurant, {
@@ -18,7 +18,7 @@ class ListRestaurantCard extends StatelessWidget {
         Navigator.pushNamed(
           context,
           '/detail',
-          arguments: restaurant,
+          arguments: restaurant.id,
         );
       },
       child: Container(
@@ -38,7 +38,8 @@ class ListRestaurantCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 image: DecorationImage(
                   fit: BoxFit.cover,
-                  image: NetworkImage(restaurant.pictureId),
+                  image: NetworkImage(
+                      "https://restaurant-api.dicoding.dev/images/small/${restaurant.pictureId}"),
                 ),
               ),
             ),

@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mealmarketapp/model/restaurant.dart';
+import 'package:mealmarketapp/data/model/restaurant_detail_model.dart';
+import 'package:mealmarketapp/provider/restaurant_provider.dart';
+import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
 
-class DetailPage extends StatelessWidget {
-  final Restaurant restaurant;
-  const DetailPage({super.key, required this.restaurant});
+class DetailPage extends StatefulWidget {
+  final String idRes;
+  const DetailPage({super.key, required this.idRes});
+
+  @override
+  State<DetailPage> createState() => _DetailPageState();
+}
+
+class _DetailPageState extends State<DetailPage> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget backgroundImage() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RestaurantProvider resProvider =
+          Provider.of<RestaurantProvider>(context, listen: false);
+      resProvider.restaurantDetail(widget.idRes);
+    });
+
+    Widget backgroundImage(String pictureId) {
       return Container(
         width: double.infinity,
         height: 450,
@@ -17,7 +42,7 @@ class DetailPage extends StatelessWidget {
           image: DecorationImage(
             fit: BoxFit.cover,
             image: NetworkImage(
-              restaurant.pictureId,
+              "https://restaurant-api.dicoding.dev/images/medium/$pictureId",
             ),
           ),
         ),
@@ -42,7 +67,7 @@ class DetailPage extends StatelessWidget {
       );
     }
 
-    Widget content() {
+    Widget content(RestaurantDetail? restaurant) {
       return Container(
         width: double.infinity,
         margin: EdgeInsets.only(
@@ -63,7 +88,7 @@ class DetailPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          restaurant.name,
+                          restaurant?.name ?? "",
                           style: whiteTextStyle.copyWith(
                             fontSize: 24,
                             fontWeight: semiBold,
@@ -71,7 +96,7 @@ class DetailPage extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          restaurant.city,
+                          restaurant?.city ?? "",
                           style: whiteTextStyle.copyWith(
                             fontSize: 16,
                             fontWeight: light,
@@ -90,7 +115,7 @@ class DetailPage extends StatelessWidget {
                         child: SvgPicture.asset('assets/icon/ic_star.svg'),
                       ),
                       Text(
-                        restaurant.rating.toString(),
+                        restaurant?.rating.toString() ?? "0.0",
                         style: whiteTextStyle.copyWith(fontWeight: medium),
                       ),
                     ],
@@ -123,7 +148,7 @@ class DetailPage extends StatelessWidget {
                     height: 6,
                   ),
                   Text(
-                    restaurant.description,
+                    restaurant?.description ?? "",
                     style: blackTextStyle.copyWith(
                       height: 2,
                     ),
@@ -144,7 +169,7 @@ class DetailPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
-                      restaurant.menus.foods.length,
+                      restaurant?.menus.foods.length ?? 0,
                       (index) {
                         return Row(
                           children: [
@@ -159,7 +184,10 @@ class DetailPage extends StatelessWidget {
                             SizedBox(
                               width: 6,
                             ),
-                            Text(restaurant.menus.foods[index].name.toString(),
+                            Text(
+                                restaurant?.menus.foods[index].name
+                                        .toString() ??
+                                    "",
                                 style: blackTextStyle),
                           ],
                         );
@@ -183,7 +211,7 @@ class DetailPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
-                      restaurant.menus.drinks.length,
+                      restaurant?.menus.drinks.length ?? 0,
                       (index) {
                         return Row(
                           children: [
@@ -198,7 +226,10 @@ class DetailPage extends StatelessWidget {
                             SizedBox(
                               width: 6,
                             ),
-                            Text(restaurant.menus.drinks[index].name.toString(),
+                            Text(
+                                restaurant?.menus.drinks[index].name
+                                        .toString() ??
+                                    "",
                                 style: blackTextStyle),
                           ],
                         );
@@ -222,12 +253,49 @@ class DetailPage extends StatelessWidget {
 
     return Scaffold(
       body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            backgroundImage(),
-            customShadow(),
-            content(),
-          ],
+        child: Consumer<RestaurantProvider>(
+          builder: (context, state, _) {
+            if (state.state == ResultState.loading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (state.state == ResultState.hasData) {
+              return Stack(
+                children: [
+                  backgroundImage(
+                      state.detailResult?.restaurant.pictureId ?? ""),
+                  customShadow(),
+                  content(state.detailResult?.restaurant),
+                ],
+              );
+            } else if (state.state == ResultState.error) {
+              return Center(
+                child: Material(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 200,
+                        height: 200,
+                        child:
+                            SvgPicture.asset('assets/icon/ic_not_connect.svg'),
+                      ),
+                      Text(
+                        state.message,
+                        style: redTextStyle.copyWith(fontSize: 24),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              return Center(
+                child: Material(
+                  child: Text(''),
+                ),
+              );
+            }
+          },
         ),
       ),
     );

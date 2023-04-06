@@ -1,6 +1,26 @@
 import 'dart:convert';
 
-class Restaurant {
+class RestaurantDetailResultModel {
+  final bool error;
+  final String message;
+  final RestaurantDetail restaurant;
+
+  RestaurantDetailResultModel({
+    required this.error,
+    required this.message,
+    required this.restaurant,
+  });
+
+  factory RestaurantDetailResultModel.fromJson(Map<String, dynamic> json) {
+    return RestaurantDetailResultModel(
+      error: json['error'],
+      message: json['message'],
+      restaurant: RestaurantDetail.fromJson(json['restaurant']),
+    );
+  }
+}
+
+class RestaurantDetail {
   final String id;
   final String name;
   final String description;
@@ -9,7 +29,7 @@ class Restaurant {
   final double rating;
   final MenuItem menus;
 
-  Restaurant({
+  RestaurantDetail({
     required this.id,
     required this.name,
     required this.description,
@@ -19,8 +39,8 @@ class Restaurant {
     required this.menus,
   });
 
-  factory Restaurant.fromJson(Map<String, dynamic> restaurant) {
-    return Restaurant(
+  factory RestaurantDetail.fromJson(Map<String, dynamic> restaurant) {
+    return RestaurantDetail(
       id: restaurant['id'],
       name: restaurant['name'],
       description: restaurant['description'],
@@ -74,13 +94,4 @@ class DrinkItem {
   factory DrinkItem.fromJson(Map<String, dynamic> drinkItem) => DrinkItem(
         name: drinkItem['name'] ?? "",
       );
-}
-
-List<Restaurant> parseRestaurants(String? json) {
-  if (json == null) {
-    return [];
-  }
-
-  final List parsed = jsonDecode(json)['restaurants'];
-  return parsed.map((json) => Restaurant.fromJson(json)).toList();
 }
